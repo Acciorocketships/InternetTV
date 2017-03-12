@@ -5,6 +5,7 @@ import subprocess
 
 baseurl = "http://watchseries.cr/"
 priorityhosts = ["vidzi","vodlocker","thevideo","vidbull","daclips"] # Specify which hosts you want to display
+# The first host above will open in your browser
 
 br = mechanize.Browser()
 ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:18.0) Gecko/20100101 Firefox/18.0 (compatible;)'
@@ -57,8 +58,9 @@ class FindVideo(object):
 
 	def __init__(self, linkpage):
 		self.linkpage = linkpage
-		self.extlinks = []
-		self.vidlink = None
+		self.extlinks = [] # Links that appear on watchseries.cr
+		self.prioritylinks = [] # Actual video links that are printed to the console
+		self.vidlink = None # The best videolink
 
 	# Finds all of the external links 
 	def findextlinks(self):
@@ -73,17 +75,23 @@ class FindVideo(object):
 	# Goes through the external links on the watchseries site and returns the first link that
 	# is from a priority host (otherwise just the first link)
 	def parseextlinks(self):
+		result = None
 		for extlink in self.extlinks:
 			result = self.getvidlink(extlink)[0]
 			if result != None:
 				for j, host in enumerate(priorityhosts):
 					if result.url.find(host) > -1:
-						if result.url.find("vidzi") > -1:
+						if result.url.find(priorityhosts[0]) > -1:
 							self.vidlink = result.url
 						print(result.url)
-		if result == None and len(self.extlinks) != 0:
+						self.prioritylinks.append(result.url)
+		if self.vidlink == None and len(self.prioritylinks) != 0:
+			self.vidlink = self.prioritylinks[0]
+		elif result == None and len(self.extlinks) != 0:
 			br.open(self.extlinks[0])
 			self.vidlink = [link for link in br.links(text_regex='Click Here To Play')][0].url
+		if self.vidlink == None:
+			sys.exit("No links found")
 
 	# Just gets the first video link, ignoring the priority hosts
 	def getfirstlink(self):
@@ -107,5 +115,8 @@ episode = FindVideo(show.url)
 episode.findextlinks()
 episode.parseextlinks()
 
-command = 'open ' + episode.vidlink
-subprocess.Popen(command, shell = True) 
+try:
+	command = 'open ' + episode.vidlink
+	subprocess.Popen(command, shell = True) 
+except:
+	pass
