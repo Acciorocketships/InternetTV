@@ -4,11 +4,11 @@ Automatically gets a streaming link online for any TV show. You must install mec
 
 How to Run:
 
-python tv.py sherlock s3e3
+python tv.py monty pythons flying circus s1e5
 
 or
 
 python tv.py
-sherlock
-3
-3
+Name of Show: monty pythons flying circus
+Season: 1
+Episode: 5
