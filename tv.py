@@ -77,14 +77,14 @@ class FindVideo(object):
 	def parseextlinks(self):
 		result = None
 		for extlink in self.extlinks:
-			result = self.getvidlink(extlink)[0]
+			result = self.getvidlink(extlink)
 			if result != None:
 				for j, host in enumerate(priorityhosts):
-					if result.url.find(host) > -1:
-						if result.url.find(priorityhosts[0]) > -1:
-							self.vidlink = result.url
-						print(result.url)
-						self.prioritylinks.append(result.url)
+					if result.find(host) > -1:
+						if result.find(priorityhosts[0]) > -1:
+							self.vidlink = result
+						print(result)
+						self.prioritylinks.append(result)
 		if self.vidlink == None and len(self.prioritylinks) != 0:
 			self.vidlink = self.prioritylinks[0]
 		elif result == None and len(self.extlinks) != 0:
@@ -98,12 +98,11 @@ class FindVideo(object):
 		if len(self.extlinks) != 0:
 			br.open(self.extlinks[0])
 			self.vidlink = [link for link in br.links(text_regex='Click Here To Play')][0].url
-			return
 
 	# returns the video link, given the external link on the watchseries site
 	def getvidlink(self, extlink):
 		br.open(extlink)
-		return [link for link in br.links(text_regex='Click Here To Play')]
+		return [link for link in br.links(text_regex='Click Here To Play')][0].url
 
 
 show = FindShow()
