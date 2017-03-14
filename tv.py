@@ -4,7 +4,7 @@ import re
 import subprocess
 
 baseurl = "http://watchseries.cr/"
-priorityhosts = ["vidzi","vodlocker","thevideo","vidbull","daclips"] # Specify which hosts you want to display
+priorityhosts = ["vidzi","thevideo"] # Specify which hosts you want to display
 # The first host above will open in your browser
 
 br = mechanize.Browser()
