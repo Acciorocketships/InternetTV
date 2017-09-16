@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<title>Ryan Kortvelesy</title>
+
+{% if show %}
+<h1> Links for {{ show }}, Season {{ season }} Episode {{ episode }} </h1><br>
+<body>
+{% for link in links %}
+	<li> <a href="{{ link }}"> {{ link }} </a> </li>
+{% endfor %}
+</body>
+
+{% else %}
+<h1> Type 'localhost:5000/name of show/seasonnum/episodenum' in the url </h1>
+{% endif %}
+
+</html>

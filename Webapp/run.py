@@ -1,56 +1,39 @@
+from flask import Flask, render_template
 import mechanize
-import sys
-import re
-import subprocess
+app = Flask(__name__)
 
 baseurl = "http://watchseries.do/"
 priorityhosts = ["vidzi","daclips","gorillavid","thevideo","streamin"] # Specify which hosts you want to display
-# The first host above will open in your browser
-
 br = mechanize.Browser()
 ua = 'Mozilla/5.0 (X11; Linux x86_64; rv:18.0) Gecko/20100101 Firefox/18.0 (compatible;)'
 br.addheaders = [('User-Agent', ua), ('Accept', '*/*')]
 br.set_handle_robots(False)
 
 
-class FindShow(object):
 
-	def __init__(self):
-		self.name = None
-		self.season = None
-		self.episode = None
-		self.url = None
+@app.route('/')
+def errorpage():
+	return render_template('error.html')
 
-	# Goes through the input arguments and finds the show, season, and episode
-	# If it can't find that info, it asks for it
-	def parseinput(self):
-		total = len(sys.argv)
-		if total >= 2:
-			nums = re.findall("[-+]?\d+[\.]?\d*?[-+]?\d*", sys.argv[total-1])
-			try:
-				self.season = int(nums[0])
-				self.episode = int(nums[1])
-			except:
-				pass
-			if len(nums) > 0:
-				lastword = total-1
-			else:
-				lastword = total
-			if len(sys.argv[1:lastword]) > 0:
-				self.name = ""
-			for word in sys.argv[1:lastword]:
-				self.name += word + " "
-			self.name = self.name[:-1]
-		if self.name == None:
-			self.name = raw_input("Name of Show: ")
-		if self.season == None:
-			self.season = input("Season: ")
-		if self.episode == None:
-			self.episode = input("Episode: ")
 
-	# generates the url with all of the episode links
-	def constructurl(self):
-		self.url = baseurl + "/series/" + self.name.replace(" ","-") + "/season/" + str(self.season) + "/episode/" + str(self.episode)
+
+@app.route('/<show>/<int:season>/<int:episode>')
+def home(show=None,season=1,episode=1):
+	url = constructurl(show,season,episode)
+	ep = FindVideo(url)
+	ep.findextlinks()
+	ep.parseextlinks()
+	links = ep.prioritylinks
+	bestlink = ep.vidlink
+	links.remove(bestlink)
+	links.insert(0,bestlink)
+	return render_template('tv.html',show=" ".join(show.capitalize().split("-")),season=str(season),episode=str(episode),links=ep.prioritylinks)
+
+
+
+def constructurl(show,season,episode):
+		url = baseurl + "/series/" + show.replace(" ","-") + "/season/" + str(season) + "/episode/" + str(episode)
+		return url
 
 
 
@@ -64,10 +47,7 @@ class FindVideo(object):
 
 	# Finds all of the external links 
 	def findextlinks(self):
-		try:
-			br.open(self.linkpage)
-		except:
-			sys.exit("Show not found")
+		br.open(self.linkpage)
 		for link in br.links(text_regex='Watch This Link'):
 			if link.url.find(baseurl) > -1:
 				self.extlinks.append(link.url)
@@ -90,8 +70,6 @@ class FindVideo(object):
 		elif result == None and len(self.extlinks) != 0:
 			br.open(self.extlinks[0])
 			self.vidlink = [link for link in br.links(text_regex='Click Here To Play')][0].url
-		if self.vidlink == None:
-			sys.exit("No links found")
 
 	# Just gets the first video link, ignoring the priority hosts
 	def getfirstlink(self):
@@ -105,17 +83,7 @@ class FindVideo(object):
 		return [link for link in br.links(text_regex='Click Here To Play')][0].url
 
 
-show = FindShow()
-show.parseinput()
-show.constructurl()
-print(show.name + ", Season " + str(show.season) + " Episode " + str(show.episode))
 
-episode = FindVideo(show.url)
-episode.findextlinks()
-episode.parseextlinks()
 
-try:
-	command = 'open ' + episode.vidlink
-	subprocess.Popen(command, shell = True) 
-except:
-	pass
+if __name__ == '__main__':
+	app.run(host='0.0.0.0', port=8081, debug=False)
