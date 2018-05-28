@@ -28,6 +28,8 @@ def home(show=None,season=1,episode=1):
 	try:
 		print(links)
 		print("Best Link: ", bestlink)
+	except:
+		pass
 	links.remove(bestlink)
 	links.insert(0,bestlink)
 	return render_template('tv.html',show=" ".join(show.capitalize().split("-")),season=str(season),episode=str(episode),links=ep.prioritylinks)
